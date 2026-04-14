@@ -20,7 +20,7 @@
   /**
    * Initialize the application.
    */
-  App.init = function () {
+  App.init = async function () {
     // Initialize map
     window.PathSense.Map.init();
 
@@ -30,13 +30,23 @@
     // Setup event listeners
     setupSearchInputs();
     setupButtons();
+    setupLayerToggles();
     setupDemoButtons();
     setupKeyboardShortcuts();
 
     // Animate stats on load
     animateStats();
 
-    console.log('🛣️ PathSense India initialized');
+    // Load heatmap data & crowdsource reports (async, non-blocking)
+    window.PathSense.Heatmap.init().then(function () {
+      console.log('🗺️ Heatmap data ready');
+    });
+    window.PathSense.Heatmap.loadReports().then(function (count) {
+      console.log('📍 Loaded ' + count + ' reports on map');
+    });
+    window.PathSense.Heatmap.loadStats();
+
+    console.log('🛣️ PathSense India initialized (with backend integration)');
   };
 
 
@@ -187,6 +197,35 @@
     document.getElementById('toggle-legend-btn').addEventListener('click', () => {
       document.getElementById('map-legend').classList.toggle('visible');
     });
+  }
+
+  /**
+   * Setup layer toggle buttons (heatmap, reports).
+   */
+  function setupLayerToggles() {
+    // Heatmap toggle
+    var heatBtn = document.getElementById('toggle-heatmap-btn');
+    if (heatBtn) {
+      heatBtn.addEventListener('click', function () {
+        var visible = window.PathSense.Heatmap.toggle();
+        heatBtn.classList.toggle('active', visible);
+        App.showToast('info',
+          visible ? 'Heatmap Enabled' : 'Heatmap Disabled',
+          visible ? 'Road quality heatmap overlay is now visible.' : 'Heatmap overlay hidden.');
+      });
+    }
+
+    // Reports toggle
+    var reportsBtn = document.getElementById('toggle-reports-btn');
+    if (reportsBtn) {
+      reportsBtn.addEventListener('click', function () {
+        var visible = window.PathSense.Heatmap.toggleReports();
+        reportsBtn.classList.toggle('active', visible);
+        App.showToast('info',
+          visible ? 'Reports Shown' : 'Reports Hidden',
+          visible ? 'Crowdsource report markers are visible.' : 'Report markers hidden.');
+      });
+    }
   }
 
   function setupDemoButtons() {

@@ -4,106 +4,280 @@
 
 **AI-powered Road Quality & Route Intelligence System** for smarter, safer commutes across India.
 
-![PathSense India](https://img.shields.io/badge/SDG_11-Sustainable_Cities-10b981?style=for-the-badge)
-![Tech](https://img.shields.io/badge/HTML%2FCSS%2FJS-Leaflet.js-06b6d4?style=for-the-badge)
+![SDG 11](https://img.shields.io/badge/SDG_11-Sustainable_Cities-10b981?style=for-the-badge)
+![Frontend](https://img.shields.io/badge/Frontend-HTML%2FCSS%2FJS-06b6d4?style=for-the-badge)
+![Backend](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge)
+![Map](https://img.shields.io/badge/Map-Leaflet.js-199900?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-MVP-fbbf24?style=for-the-badge)
+
+<br>
 
 ## 🌐 Live Application
 
-Explore the fully functional MVP deployed via Cloudflare Pages:
-🔗 **[Live Demo: PathSense India](https://pathsense-india.pages.dev/)**
+🔗 **[https://pathsense-india.pages.dev](https://pathsense-india.pages.dev/)**
 
 ---
 
-## 🎯 What is PathSense?
+## 📋 Table of Contents
 
-When you enter **Source → Destination**, PathSense doesn't just show the fastest route — it shows the **healthiest route** with a comprehensive **Traffic Environment Index (TEI)** score covering:
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Architecture](#-architecture)
+- [TEI Methodology](#-tei-methodology)
+- [Tech Stack](#-tech-stack)
+- [Quick Start](#-quick-start)
+- [API Endpoints](#-api-endpoints)
+- [Project Structure](#-project-structure)
+- [SDG 11 Alignment](#-sdg-11-alignment)
 
-- 🚗 **Congestion Level** — Real-time traffic flow analysis
-- 🛣️ **Surface Quality** — Road roughness (IRI-based)
-- 🕳️ **Pothole Density** — Pothole count per km
-- 🛡️ **Safety Score** — Lighting, accidents, infrastructure
-- 🌿 **Emission Impact** — CO₂/NOₓ per route
-- 🏗️ **Infrastructure** — Signage, dividers, drainage
-- 💺 **Ride Comfort** — Speed bumps, sharp turns
+---
 
-## 🚀 Quick Start
+## 🎯 Overview
 
-### Option 1: Open directly
+PathSense India goes beyond simple navigation. When you enter **Source → Destination**, it analyzes every road segment along each route alternative and scores them using a proprietary **Traffic Environment Index (TEI)**. The system recommends the **healthiest route** — factoring in road surface quality, congestion, pothole severity, safety conditions, emission impact, and infrastructure adequacy.
+
+### The Problem
+- **62% of Indian roads** lack adequate quality monitoring
+- Commuters waste **45+ minutes daily** on poor-condition routes
+- Vehicle wear costs from potholes average **₹12,000/year** per vehicle
+- No navigation app considers **road health** alongside travel time
+
+### Our Solution
+A real-time, crowdsource-enhanced road intelligence platform that scores, compares, and recommends routes based on holistic road quality — not just distance or time.
+
+---
+
+## ✨ Key Features
+
+| Feature | Description |
+|---------|------------|
+| 🗺️ **TEI Route Analysis** | Composite 0-100 scoring across 7 road quality factors |
+| 🔀 **Multi-Route Comparison** | Side-by-side comparison of up to 3 route alternatives |
+| 🌡️ **Road Quality Heatmap** | 2,500+ data points visualized as a color-coded city overlay |
+| 📍 **Crowdsource Reporting** | GPS-enabled hazard reporting (potholes, flooding, damage) |
+| 🌿 **Emission Estimation** | CO₂/NOₓ per-route calculations with "cleaner choice" badges |
+| 🔧 **Vehicle Wear Cost** | Estimated maintenance cost per route based on road conditions |
+| 👍 **Community Validation** | Upvote/downvote crowdsource reports for accuracy |
+| 📊 **Segment Drill-Down** | Click any road segment for factor-level breakdown popups |
+| 🎨 **Dark Glassmorphic UI** | Premium dark theme with animations and micro-interactions |
+
+---
+
+## 🏗️ Architecture
+
 ```
-Open frontend/index.html in your browser
+┌──────────────────────────────────────────────────────────┐
+│                    FRONTEND (Vanilla JS)                 │
+│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌──────────────┐  │
+│  │ Map.js  │ │Route.js │ │Dashboard │ │  Heatmap.js  │  │
+│  │(Leaflet)│ │(OSRM)   │ │  .js     │ │(Leaflet.heat)│  │
+│  └────┬────┘ └────┬────┘ └────┬─────┘ └──────┬───────┘  │
+│       └───────────┼───────────┼───────────────┘          │
+│                   │     App.js (Orchestrator)             │
+│                   │     TEI.js (Scoring Engine)           │
+└───────────────────┼──────────────────────────────────────┘
+                    │ REST API
+┌───────────────────┼──────────────────────────────────────┐
+│                   ▼    BACKEND (FastAPI + Python)         │
+│  ┌──────────────────────────────────────────────────┐    │
+│  │  /api/routes    → OSRM proxy + TEI scoring       │    │
+│  │  /api/reports   → CRUD + voting + nearby search   │    │
+│  │  /api/heatmap   → 2,500+ road quality grid points │    │
+│  │  /api/geocode   → Nominatim proxy (India)         │    │
+│  │  /api/stats     → Platform analytics              │    │
+│  └──────────────────────────────────────────────────┘    │
+│  ┌────────────┐  ┌──────────────┐  ┌─────────────────┐  │
+│  │ tei_engine │  │  database.py │  │   models.py     │  │
+│  │   .py      │  │  (SQLite)    │  │  (Pydantic)     │  │
+│  └────────────┘  └──────────────┘  └─────────────────┘  │
+└──────────────────────────────────────────────────────────┘
 ```
 
-### Option 2: Local server (recommended)
-```bash
-npx serve frontend -l 3000
-# Then open http://localhost:3000
-```
+---
 
-## 🎮 Demo
+## 🧠 TEI Methodology
 
-1. Open the app
-2. Click any **Quick Demo** button (e.g., "CP → Airport")
-3. Watch as PathSense analyzes route alternatives
-4. Compare routes by TEI scores
-5. Click route segments for detailed breakdowns
-6. Use the **Report Issue** button to crowdsource road problems
+**TEI (Traffic Environment Index)** is a weighted composite score from 0 to 100:
 
-## 🧠 TEI Score
+| Factor | Weight | Source | Metric |
+|--------|--------|--------|--------|
+| 🚗 Congestion | 25% | Traffic density | Flow rate vs. capacity |
+| 🛣️ Surface Quality | 20% | IRI roughness model | International Roughness Index |
+| 🕳️ Pothole Density | 15% | Crowdsource reports | Potholes per km |
+| 🛡️ Safety | 15% | Infra + accident data | Lighting, signage, history |
+| 🌿 Emissions | 10% | Speed-emission model | g CO₂/km estimate |
+| 🏗️ Infrastructure | 10% | Road audit data | Dividers, drainage, signals |
+| 💺 Comfort | 5% | Composite | Speed bumps, turns, surface |
 
-TEI (Traffic Environment Index) is our custom composite score (0-100):
+### Grading Scale
 
-| Score | Grade | Meaning |
-|-------|-------|---------|
-| 90-100 | A+ 🟢 | Excellent — Smooth, safe, efficient |
-| 75-89 | A 🟢 | Good — Minor issues only |
-| 60-74 | B 🟡 | Average — Some caution needed |
-| 40-59 | C 🟠 | Poor — Significant issues |
-| 20-39 | D 🔴 | Bad — Major problems |
-| 0-19 | F ⚫ | Dangerous — Avoid if possible |
+| Score | Grade | Color | Interpretation |
+|-------|-------|-------|---------------|
+| 90-100 | A+ | 🟢 `#10b981` | Excellent — smooth, safe, efficient |
+| 75-89 | A | 🟢 `#34d399` | Good — minor issues only |
+| 60-74 | B | 🟡 `#fbbf24` | Average — some caution needed |
+| 40-59 | C | 🟠 `#f97316` | Poor — significant issues |
+| 20-39 | D | 🔴 `#ef4444` | Bad — major problems |
+| 0-19 | F | ⚫ `#6b7280` | Dangerous — avoid if possible |
+
+---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | HTML/CSS/JS (Vanilla) |
-| Map | Leaflet.js + CartoDB Dark Tiles |
-| Routing | OSRM (Open Source Routing Machine) |
-| Geocoding | Nominatim (OpenStreetMap) |
-| Design | Dark glassmorphic UI |
+### Frontend
+| Technology | Purpose |
+|-----------|---------|
+| HTML5 / CSS3 / Vanilla JS | Core application (no framework dependencies) |
+| [Leaflet.js](https://leafletjs.com/) | Interactive map with CartoDB dark tiles |
+| [Leaflet.heat](https://github.com/Leaflet/Leaflet.heat) | Road quality heatmap overlay |
+| Google Fonts (Inter, Outfit) | Modern typography |
+
+### Backend
+| Technology | Purpose |
+|-----------|---------|
+| [FastAPI](https://fastapi.tiangolo.com/) | REST API framework |
+| [Uvicorn](https://www.uvicorn.org/) | ASGI server with hot reload |
+| SQLite | Lightweight database for reports & road quality |
+| [Pydantic](https://docs.pydantic.dev/) | Request/response validation |
+| [httpx](https://www.python-httpx.org/) | Async HTTP client for OSRM/Nominatim |
+
+### External APIs (No Keys Required)
+| API | Purpose |
+|-----|---------|
+| [OSRM](http://project-osrm.org/) | Open-source routing with alternatives |
+| [Nominatim](https://nominatim.org/) | OpenStreetMap geocoding (India) |
+| [CartoDB](https://carto.com/) | Dark map tile provider |
+
+### Deployment
+| Platform | Purpose |
+|----------|---------|
+| [Cloudflare Pages](https://pages.cloudflare.com/) | Frontend CDN hosting |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.9+
+- Node.js 16+ (for `npx serve`)
+
+### One-Click Start (Windows)
+```bash
+# Double-click run.bat or:
+.\run.bat
+```
+
+### Manual Start
+
+**1. Backend:**
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+# API starts at http://localhost:8000
+# Swagger docs at http://localhost:8000/docs
+```
+
+**2. Frontend:**
+```bash
+npx -y serve frontend -l 3000
+# Opens at http://localhost:3000
+```
+
+### Demo
+1. Open `http://localhost:3000`
+2. Click any **Quick Demo** button (e.g., "CP → Airport")
+3. Toggle the **heatmap** 🌡️ button in the navbar
+4. Toggle **report markers** 📍 to see crowdsourced issues
+5. Click route segments on the map for detailed TEI breakdowns
+6. Compare routes in the dashboard sidebar
+7. Submit a road issue via the **Report Issue** FAB
+
+---
+
+## 📡 API Endpoints
+
+Base URL: `http://localhost:8000`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | API info & health check |
+| `POST` | `/api/routes` | Analyze routes with TEI scoring |
+| `GET` | `/api/geocode?q=` | Geocode place names (India) |
+| `GET` | `/api/reports` | List all crowdsource reports |
+| `GET` | `/api/reports/nearby?lat=&lng=&radius_km=` | Reports near a location |
+| `POST` | `/api/reports` | Submit a new road issue report |
+| `POST` | `/api/reports/{id}/vote` | Upvote/downvote a report |
+| `GET` | `/api/heatmap` | Road quality heatmap data (2,550 points) |
+| `GET` | `/api/heatmap/detailed` | Full factor scores per grid point |
+| `GET` | `/api/stats` | Platform statistics & analytics |
+
+📖 **Interactive API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
 
 ## 📁 Project Structure
 
 ```
 PathSense India/
 ├── frontend/
-│   ├── index.html          # Main application
+│   ├── index.html              # Main SPA
 │   ├── css/
-│   │   ├── index.css       # Design system & tokens
-│   │   ├── map.css         # Map-specific styles
-│   │   └── dashboard.css   # Dashboard & gauge styles
+│   │   ├── index.css           # Design system (650+ lines)
+│   │   ├── map.css             # Leaflet overrides & markers
+│   │   └── dashboard.css       # Gauges, bars, comparisons
 │   └── js/
-│       ├── tei.js          # TEI scoring engine
-│       ├── map.js          # Leaflet map module
-│       ├── route.js        # Routing & geocoding
-│       ├── dashboard.js    # Visualizations
-│       ├── crowdsource.js  # User reporting
-│       └── app.js          # Main orchestrator
+│       ├── tei.js              # TEI scoring engine (client)
+│       ├── map.js              # Leaflet map + segments
+│       ├── route.js            # OSRM routing + Nominatim
+│       ├── dashboard.js        # SVG gauge + factor bars
+│       ├── heatmap.js          # Heatmap overlay + reports
+│       ├── crowdsource.js      # Report form + GPS
+│       └── app.js              # Main orchestrator
+│
+├── backend/
+│   ├── main.py                 # FastAPI application
+│   ├── database.py             # SQLite + seed data
+│   ├── models.py               # Pydantic schemas
+│   ├── tei_engine.py           # TEI scoring (server)
+│   ├── requirements.txt        # Python dependencies
+│   ├── routes/
+│   │   └── api.py              # REST API endpoints
+│   └── data/
+│       └── pathsense.db        # SQLite database (auto-generated)
+│
+├── .gitignore
+├── run.bat                     # One-click startup (Windows)
 └── README.md
 ```
 
+---
+
 ## 🏆 SDG 11 Alignment
 
-- **Target 11.2** — Improve road transport systems
-- **Target 11.6** — Reduce environmental impact via emission-aware routing
-- **Target 11.7** — Safer public spaces through safety scoring
+PathSense India directly supports **UN Sustainable Development Goal 11: Sustainable Cities and Communities**.
 
-## 🔗 Part of the GLOSA-BHARAT Ecosystem
-
-- **GLOSA-BHARAT** optimizes traffic signals to reduce emissions
-- **PathSense India** optimizes route selection based on road quality
-- Together: **Sustainable Urban Mobility Intelligence Platform**
+| Target | How PathSense Contributes |
+|--------|--------------------------|
+| **11.2** — Sustainable transport | Routes users via highest-quality roads, reducing travel stress |
+| **11.6** — Environmental impact | Emission-aware routing recommends lower CO₂ paths |
+| **11.7** — Safe public spaces | Safety scoring highlights poorly-lit and hazardous stretches |
+| **11.b** — Disaster resilience | Crowdsource flooding reports enable real-time hazard avoidance |
 
 ---
 
-Built with ❤️ for India's roads.
+## 🔗 Part of the GLOSA-BHARAT Ecosystem
+
+| Project | Role |
+|---------|------|
+| **GLOSA-BHARAT** | Optimizes traffic signals to reduce idle emissions |
+| **PathSense India** | Optimizes route selection based on road health |
+| **Together** | Sustainable Urban Mobility Intelligence Platform |
+
+---
+
+<p align="center">
+  Built with ❤️ for India's roads
+  <br>
+  <b>PathSense India</b> — Road Quality Intelligence
+</p>

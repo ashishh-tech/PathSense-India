@@ -107,7 +107,7 @@
   /**
    * Handle report submission.
    */
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!selectedType) {
       showToast('warning', 'Select Issue Type', 'Please select the type of road issue.');
       return;
@@ -128,6 +128,24 @@
       selectedType,
       severity
     );
+
+    // POST to backend API
+    const API_BASE = window.PathSense.API_BASE || 'http://localhost:8000';
+    try {
+      await fetch(API_BASE + '/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: selectedType,
+          severity: severity,
+          latitude: reportLocation.lat,
+          longitude: reportLocation.lng,
+          description: description
+        })
+      });
+    } catch (err) {
+      console.warn('Backend offline, report saved locally only:', err.message);
+    }
 
     // Close modal
     document.getElementById('report-modal').classList.add('hidden');
