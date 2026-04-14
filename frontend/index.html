@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PathSense India — AI-powered Road Quality & Route Intelligence System. Analyze road conditions, potholes, congestion, and find the healthiest route.">
+  <meta name="keywords" content="road quality, pothole detection, route analysis, TEI, traffic, India, navigation">
+  <meta name="theme-color" content="#050a18">
+  <title>PathSense India — Road Quality Intelligence</title>
+
+  <!-- Favicon (emoji placeholder) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>🛣️</text></svg>">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       Navbar
+       ═══════════════════════════════════════ -->
+  <nav id="navbar">
+    <div class="nav-brand">
+      <div class="logo-icon">🛣️</div>
+      <span class="logo-text">Path<span class="logo-accent">Sense</span></span>
+      <span class="logo-badge">INDIA</span>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn" id="toggle-panel-btn" title="Toggle Search Panel">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
+      </button>
+      <button class="nav-btn" id="toggle-legend-btn" title="Map Legend">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+    </div>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════
+       Full-Screen Map
+       ═══════════════════════════════════════ -->
+  <div id="map"></div>
+
+
+  <!-- ═══════════════════════════════════════
+       Search Panel (Left)
+       ═══════════════════════════════════════ -->
+  <aside id="search-panel" class="glass-panel">
+    <!-- Hero -->
+    <div id="hero-section">
+      <h1>Don't just navigate.<br><span class="gradient-text">Know your road.</span></h1>
+      <p class="hero-subtitle">AI-powered road quality intelligence for smarter, safer commutes across India.</p>
+    </div>
+
+    <!-- Search Form -->
+    <div class="search-form">
+      <div class="input-wrapper">
+        <div class="input-dot source"></div>
+        <input type="text" id="source-input" placeholder="Enter source location" autocomplete="off">
+        <div id="source-suggestions" class="suggestions-dropdown"></div>
+      </div>
+
+      <button id="swap-btn" class="swap-btn" title="Swap locations">⇅</button>
+
+      <div class="input-wrapper">
+        <div class="input-dot dest"></div>
+        <input type="text" id="dest-input" placeholder="Enter destination" autocomplete="off">
+        <div id="dest-suggestions" class="suggestions-dropdown"></div>
+      </div>
+
+      <button id="analyze-btn" class="primary-btn" disabled>
+        <span>Analyze Routes</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Quick Demos -->
+    <div class="quick-demos">
+      <span class="demo-label">Try:</span>
+      <button class="demo-btn" data-source="Connaught Place, New Delhi" data-dest="Indira Gandhi International Airport, New Delhi">CP → Airport</button>
+      <button class="demo-btn" data-source="India Gate, New Delhi" data-dest="Qutub Minar, New Delhi">India Gate → Qutub</button>
+      <button class="demo-btn" data-source="Red Fort, Delhi" data-dest="Lotus Temple, New Delhi">Red Fort → Lotus</button>
+    </div>
+
+    <!-- Route Results -->
+    <div id="route-results" class="route-results hidden">
+      <h3>Route Options</h3>
+      <div id="route-cards-container"></div>
+    </div>
+  </aside>
+
+
+  <!-- ═══════════════════════════════════════
+       Dashboard Panel (Right)
+       ═══════════════════════════════════════ -->
+  <aside id="dashboard-panel" class="glass-panel hidden">
+    <button id="close-dashboard" class="close-btn" title="Close Dashboard">×</button>
+
+    <div class="dashboard-header">
+      <h2>Route Analysis</h2>
+      <span id="route-name" class="route-name">—</span>
+    </div>
+
+    <!-- TEI Gauge -->
+    <div id="tei-gauge-container" class="gauge-container">
+      <!-- Rendered by dashboard.js -->
+    </div>
+
+    <!-- Factor Breakdown -->
+    <div id="factor-breakdown" class="factor-section">
+      <h3>Quality Factors</h3>
+      <div class="factor-bars" id="factor-bars-container">
+        <!-- Rendered by dashboard.js -->
+      </div>
+    </div>
+
+    <!-- Route Comparison -->
+    <div id="route-comparison" class="comparison-section">
+      <h3>Route Comparison</h3>
+      <div class="comparison-grid" id="comparison-grid-container">
+        <!-- Rendered by dashboard.js -->
+      </div>
+    </div>
+
+    <!-- Emission Stats -->
+    <div id="emission-stats" class="emission-section">
+      <h3>Environmental Impact</h3>
+      <div class="emission-grid" id="emission-grid-container">
+        <!-- Rendered by dashboard.js -->
+      </div>
+    </div>
+
+    <!-- Segment Details -->
+    <div id="segment-details" class="segment-section">
+      <h3>Segment Analysis</h3>
+      <div class="segment-list" id="segment-list-container">
+        <!-- Rendered by dashboard.js -->
+      </div>
+    </div>
+  </aside>
+
+
+  <!-- ═══════════════════════════════════════
+       Report FAB + Modal
+       ═══════════════════════════════════════ -->
+  <button id="report-fab" class="fab-btn">
+    <span class="fab-icon">📍</span>
+    <span class="fab-text">Report Issue</span>
+  </button>
+
+  <div id="report-modal" class="modal hidden">
+    <div class="modal-overlay" id="report-overlay"></div>
+    <div class="modal-content glass-panel">
+      <button class="close-btn" id="close-report" title="Close">×</button>
+      <h2>Report Road Issue</h2>
+
+      <div class="report-types" id="report-types">
+        <button class="report-type" data-type="pothole">
+          <span>🕳️</span><span>Pothole</span>
+        </button>
+        <button class="report-type" data-type="damage">
+          <span>🔨</span><span>Road Damage</span>
+        </button>
+        <button class="report-type" data-type="lighting">
+          <span>💡</span><span>Poor Lighting</span>
+        </button>
+        <button class="report-type" data-type="flooding">
+          <span>🌊</span><span>Flooding</span>
+        </button>
+        <button class="report-type" data-type="construction">
+          <span>🚧</span><span>Construction</span>
+        </button>
+        <button class="report-type" data-type="other">
+          <span>⚠️</span><span>Other Hazard</span>
+        </button>
+      </div>
+
+      <div class="severity-slider">
+        <label for="severity-range">Severity Level</label>
+        <input type="range" id="severity-range" min="1" max="5" value="3" step="1">
+        <div class="severity-labels">
+          <span>Minor</span>
+          <span>Moderate</span>
+          <span>Critical</span>
+        </div>
+      </div>
+
+      <textarea id="report-description" placeholder="Describe the issue (optional)..." rows="3"></textarea>
+
+      <div class="report-location" id="report-location">
+        <span>📍 Click on the map to set location, or use GPS</span>
+      </div>
+
+      <button id="submit-report" class="primary-btn">
+        <span>Submit Report</span>
+      </button>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       Map Legend
+       ═══════════════════════════════════════ -->
+  <div class="map-legend" id="map-legend">
+    <div class="map-legend-title">TEI Road Quality</div>
+    <div class="map-legend-items">
+      <div class="map-legend-item">
+        <div class="map-legend-color" style="background: #10b981;"></div>
+        <span>Excellent (90-100)</span>
+      </div>
+      <div class="map-legend-item">
+        <div class="map-legend-color" style="background: #34d399;"></div>
+        <span>Good (75-89)</span>
+      </div>
+      <div class="map-legend-item">
+        <div class="map-legend-color" style="background: #fbbf24;"></div>
+        <span>Average (60-74)</span>
+      </div>
+      <div class="map-legend-item">
+        <div class="map-legend-color" style="background: #f97316;"></div>
+        <span>Poor (40-59)</span>
+      </div>
+      <div class="map-legend-item">
+        <div class="map-legend-color" style="background: #ef4444;"></div>
+        <span>Bad (20-39)</span>
+      </div>
+      <div class="map-legend-item">
+        <div class="map-legend-color" style="background: #6b7280;"></div>
+        <span>Dangerous (0-19)</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       Stats Bar (Bottom)
+       ═══════════════════════════════════════ -->
+  <div id="stats-bar">
+    <div class="stat-item">
+      <span class="stat-value" id="stat-roads">12,847</span>
+      <span class="stat-label">Roads Analyzed</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value" id="stat-potholes">3,421</span>
+      <span class="stat-label">Potholes Reported</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value" id="stat-users">8,923</span>
+      <span class="stat-label">Active Contributors</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value" id="stat-cities">23</span>
+      <span class="stat-label">Cities Covered</span>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       Loading Overlay
+       ═══════════════════════════════════════ -->
+  <div id="loading-overlay" class="hidden">
+    <div class="loader">
+      <div class="loader-road"></div>
+      <p>Analyzing road quality...</p>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       Toast Container
+       ═══════════════════════════════════════ -->
+  <div id="toast-container"></div>
+
+
+  <!-- ═══════════════════════════════════════
+       Scripts
+       ═══════════════════════════════════════ -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- App Modules (order matters for dependencies) -->
+  <script src="js/tei.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/route.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/crowdsource.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
