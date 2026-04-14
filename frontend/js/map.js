@@ -16,7 +16,7 @@
   let sourceMarker = null;
   let destMarker = null;
   let reportMarkers = [];
-  let currentBaselayer = 'Streets';
+  let currentBaselayer = 'Dark';
   let miniMap = null;
 
   /* ── High-quality tile providers (Google Maps level) ── */
@@ -92,7 +92,7 @@
       var t = TILES[name];
       var layer = L.tileLayer(t.url, { attribution: t.attr, ...t.options });
       baseLayers[name] = layer;
-      if (name === 'Streets') defaultLayer = layer;
+      if (name === 'Dark') defaultLayer = layer;
     }
 
     // Hybrid layer (satellite + labels overlay)
@@ -100,8 +100,9 @@
     var hybridBase = L.tileLayer(hybridConfig.url, { attribution: hybridConfig.attr, ...hybridConfig.options });
     baseLayers['Hybrid'] = hybridBase;
 
-    // Add default
+    // Add default (dark to match UI)
     defaultLayer.addTo(map);
+    document.body.classList.add('map-dark-mode');
 
     // Zoom control bottom-right
     L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -127,8 +128,8 @@
           { attribution: hybridConfig.overlay.attr, ...hybridConfig.overlay.options }
         ).addTo(map);
       }
-      // Toggle dark mode class
-      var isDark = (e.name === 'Dark');
+      // Toggle dark mode class (dark for Dark, Satellite, Hybrid)
+      var isDark = (e.name === 'Dark' || e.name === 'Satellite' || e.name === 'Hybrid');
       document.body.classList.toggle('map-dark-mode', isDark);
     });
 
@@ -207,7 +208,7 @@
             boxZoom: false,
             keyboard: false
           });
-          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
             subdomains: 'abcd', maxZoom: 19
           }).addTo(miniMap);
 
