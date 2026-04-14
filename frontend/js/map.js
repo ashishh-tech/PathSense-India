@@ -332,42 +332,67 @@
    * Draw a route polyline with Google Maps-level styling.
    */
   MapModule.drawRoute = function (coordinates, color, isSelected, routeIndex) {
-    // Shadow for depth
+    console.log('[Map] drawRoute:', coordinates.length, 'pts, color:', color, 'selected:', isSelected);
+
+    if (!coordinates || coordinates.length < 2) {
+      console.warn('[Map] drawRoute: Not enough coordinates');
+      return null;
+    }
+
+    // Shadow/outline for depth (Google Maps style thick outline)
     var shadow = L.polyline(coordinates, {
-      color: '#000000', weight: isSelected ? 14 : 8,
-      opacity: isSelected ? 0.15 : 0.06,
-      smoothFactor: 1.5, lineCap: 'round', lineJoin: 'round'
+      color: '#000000',
+      weight: isSelected ? 12 : 7,
+      opacity: isSelected ? 0.2 : 0.08,
+      smoothFactor: 1,
+      lineCap: 'round',
+      lineJoin: 'round'
     }).addTo(map);
 
     // Color border
+    var borderColor = _darkenColor(color, 40);
     var border = L.polyline(coordinates, {
-      color: _darkenColor(color, 30), weight: isSelected ? 9 : 5,
-      opacity: isSelected ? 0.7 : 0.3,
-      smoothFactor: 1.5, lineCap: 'round', lineJoin: 'round'
+      color: borderColor,
+      weight: isSelected ? 8 : 5,
+      opacity: isSelected ? 0.8 : 0.35,
+      smoothFactor: 1,
+      lineCap: 'round',
+      lineJoin: 'round'
     }).addTo(map);
 
-    // Main route
+    // Main visible route line
     var line = L.polyline(coordinates, {
-      color: color, weight: isSelected ? 6 : 3,
-      opacity: isSelected ? 1 : 0.5,
-      smoothFactor: 1.5, lineCap: 'round', lineJoin: 'round',
-      dashArray: isSelected ? null : '12 8',
-      className: isSelected ? 'route-line-selected' : 'route-line-alt'
+      color: color,
+      weight: isSelected ? 5 : 3,
+      opacity: isSelected ? 1 : 0.55,
+      smoothFactor: 1,
+      lineCap: 'round',
+      lineJoin: 'round',
+      dashArray: isSelected ? null : '10 6'
     }).addTo(map);
 
-    // Animated flow for selected
+    // White animated flow dashes for selected route
     if (isSelected) {
       var flow = L.polyline(coordinates, {
-        color: '#ffffff', weight: 2, opacity: 0.5,
-        smoothFactor: 1.5, lineCap: 'round',
-        dashArray: '4 16', className: 'route-flow-animated'
+        color: '#ffffff',
+        weight: 2,
+        opacity: 0.45,
+        smoothFactor: 1,
+        lineCap: 'round',
+        dashArray: '4 14'
       }).addTo(map);
+      // Apply animation via DOM
+      var flowEl = flow.getElement && flow.getElement();
+      if (flowEl) {
+        flowEl.style.animation = 'route-flow 1.2s linear infinite';
+      }
       routeLayers.push(flow);
 
-      // Direction arrows every ~3km
+      // Direction arrows along the route
       _addDirectionArrows(coordinates, color);
     }
 
+    // Click to select this route
     var clickHandler = function () {
       if (window.PathSense.App && window.PathSense.App.selectRoute) {
         window.PathSense.App.selectRoute(routeIndex);
@@ -375,6 +400,8 @@
     };
     line.on('click', clickHandler);
     border.on('click', clickHandler);
+    line.on('mouseover', function () { document.body.style.cursor = 'pointer'; });
+    line.on('mouseout', function () { document.body.style.cursor = ''; });
 
     routeLayers.push(shadow, border, line);
     return { shadow: shadow, border: border, line: line };
@@ -507,16 +534,38 @@
 
   MapModule.fitBounds = function (coordinates) {
     if (!coordinates || coordinates.length === 0) return;
-    var allCoords = coordinates.flat ? coordinates.flat() : coordinates;
-    if (allCoords.length === 0) return;
-    map.fitBounds(L.latLngBounds(allCoords), {
-      padding: [80, 420], maxZoom: 15, animate: true, duration: 0.8
+
+    // coordinates is an array of [lat, lng] pairs — do NOT flatten
+    // Filter out any invalid entries
+    var validCoords = coordinates.filter(function (c) {
+      return Array.isArray(c) && c.length >= 2 && !isNaN(c[0]) && !isNaN(c[1]);
+    });
+
+    if (validCoords.length === 0) {
+      console.warn('[Map] fitBounds: No valid coordinates');
+      return;
+    }
+
+    console.log('[Map] fitBounds:', validCoords.length, 'points');
+
+    var bounds = L.latLngBounds(validCoords);
+    map.fitBounds(bounds, {
+      paddingTopLeft: [420, 80],
+      paddingBottomRight: [60, 60],
+      maxZoom: 15,
+      animate: true,
+      duration: 0.8
     });
   };
 
   MapModule.focusSegment = function (segment) {
+    if (!segment || !segment.coordinates || segment.coordinates.length === 0) return;
     map.fitBounds(L.latLngBounds(segment.coordinates), {
-      padding: [100, 200], maxZoom: 16, animate: true, duration: 0.5
+      paddingTopLeft: [420, 80],
+      paddingBottomRight: [60, 60],
+      maxZoom: 16,
+      animate: true,
+      duration: 0.5
     });
   };
 

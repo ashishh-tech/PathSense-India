@@ -314,12 +314,16 @@
     showLoading('Analyzing road quality...');
 
     try {
+      console.log('[App] Analyzing route from', state.source, 'to', state.destination);
+
       // Get routes from OSRM
       const routes = await window.PathSense.Route.getRoutes(state.source, state.destination);
+      console.log('[App] OSRM returned', routes.length, 'routes');
 
       // Analyze each route with TEI engine
       state.routes = routes.map((route, idx) => {
         const analysis = window.PathSense.TEI.analyzeRoute(route.coordinates, idx);
+        console.log('[App] Route', idx, ':', route.coordinates.length, 'coords, TEI:', analysis.overallTEI);
         return { ...route, analysis };
       });
 
@@ -329,31 +333,42 @@
       // Clear old routes from map
       window.PathSense.Map.clearRoutes();
 
-      // Draw routes on map (non-selected first, then selected)
-      for (let i = state.routes.length - 1; i >= 0; i--) {
-        const route = state.routes[i];
-        const grade = route.analysis.overallGrade;
-        const isSelected = i === 0;
-        window.PathSense.Map.drawRoute(
-          route.coordinates,
-          grade.color,
-          isSelected,
-          i
-        );
-      }
+      // Place source and destination markers
+      window.PathSense.Map.setSourceMarker(state.source.lat, state.source.lng, state.source.name);
+      window.PathSense.Map.setDestMarker(state.destination.lat, state.destination.lng, state.destination.name);
 
-      // Render route cards in search panel
-      renderRouteCards();
-
-      // Auto-select best route
-      App.selectRoute(0);
-
-      // Fit map to show all routes
+      // Fit map FIRST so the view moves to the route area
       const allCoords = state.routes.flatMap(r => r.coordinates);
+      console.log('[App] Total coords for fitBounds:', allCoords.length);
       window.PathSense.Map.fitBounds(allCoords);
 
+      // Small delay to let map pan, then draw routes
+      setTimeout(() => {
+        // Draw routes on map (non-selected first, then selected)
+        for (let i = state.routes.length - 1; i >= 0; i--) {
+          const route = state.routes[i];
+          const grade = route.analysis.overallGrade;
+          const isSelected = i === 0;
+          window.PathSense.Map.drawRoute(
+            route.coordinates,
+            grade.color,
+            isSelected,
+            i
+          );
+        }
+
+        // Render route cards in search panel
+        renderRouteCards();
+
+        // Auto-select best route (draws segments on top)
+        App.selectRoute(0);
+
+        console.log('[App] Routes drawn and selected');
+      }, 400);
+
       // Show legend
-      document.getElementById('map-legend').classList.add('visible');
+      var legendEl = document.getElementById('map-legend');
+      if (legendEl) legendEl.classList.add('visible');
 
       hideLoading();
 
